@@ -5,8 +5,8 @@
 
 * [钢琴](https://r1ader.github.io/game/piano_jq.html)
 
-<a href="https://r1ader.github.io/game/piano_jq.html"><img src="https://github.com/r1ader/anime/raw/gh-pages/img/piano.png" width = "300" height = "50" alt="图片名称" align=center /></a>
+<a href="https://r1ader.github.io/game/piano_jq.html"><img src="https://github.com/r1ader/game/raw/gh-pages/img/piano.png" width = "300" height = "50" alt="图片名称" align=center /></a>
 
 * [自制小游戏](https://r1ader.github.io/game/Square.html)
 
-<a href="https://r1ader.github.io/game/Square.html"><img src="https://github.com/r1ader/anime/raw/gh-pages/img/square.png" width = "300" height = "250" alt="图片名称" align=center /></a>
+<a href="https://r1ader.github.io/game/Square.html"><img src="https://github.com/r1ader/game/raw/gh-pages/img/square.png" width = "300" height = "250" alt="图片名称" align=center /></a>
