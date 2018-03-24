@@ -80,6 +80,7 @@
 <audio id="au7"></audio>
 <audio id="au8"></audio>
 <audio id="au9"></audio>
+<audio id="au10"></audio>
 <div id="piano">
 
 </div>
@@ -96,6 +97,11 @@
     }
     piano.html(cont);
     var use_id = 0;
+
+    for(var i=1;i<=88;i++){
+        document.getElementById("au10").src = "wav/" + i + ".mp3";
+        document.getElementById("au10").load();
+    }
 
     function key_play(a) {
         var use_name = "au" + use_id.toString();
