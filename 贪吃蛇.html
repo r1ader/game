@@ -10,6 +10,8 @@
 <style>
     #main {
         border: 1px solid black;
+        width: 600px;
+        height: 600px;
     }
 </style>
 <body>
@@ -61,7 +63,8 @@
         dir = 0;
         pointx = Math.floor(Math.random() * 100) * 10;
         pointy = Math.floor(Math.random() * 100) * 10;
-        ctx.fillStyle = 'black';
+        // ctx.fillStyle = 'rgba('+Math.round(Math.random()*255)+','+Math.round(Math.random()*255)+','+Math.round(Math.random()*255)+')';
+        ctx.fillStyle='black';
         ctx.fillRect(pointx, pointy, 10, 10);
         time = setInterval(run, speed);
     }
@@ -71,7 +74,6 @@
             ctx.fillStyle = 'white';
             ctx.fillRect(a, b, 10, 10);
         },speed*length);
-
     }
 
 
@@ -84,6 +86,8 @@
             pointx = Math.floor(Math.random() * 100) * 10;
             pointy = Math.floor(Math.random() * 100) * 10;
             ctx.fillStyle = 'black';
+            // ctx.fillStyle = 'rgba('+Math.round(Math.random()*255)+','+Math.round(Math.random()*255)+','+Math.round(Math.random()*255)+')';
+
             ctx.fillRect(pointx, pointy, 10, 10);
         }
         else if (x < 0 || x > 990 || y < 0 || y > 990||ctx.getImageData(x+5,y+5,1,1).data=="0,0,0,255") {
@@ -91,6 +95,8 @@
             init();
         }
         ctx.fillStyle = 'black';
+        // ctx.fillStyle = 'rgba('+Math.round(Math.random()*255)+','+Math.round(Math.random()*255)+','+Math.round(Math.random()*255)+',1)';
+        console.log(ctx.fillStyle);
         ctx.fillRect(x, y, 10, 10);
         clear(x,y);
         x += 10 * dx[dir];

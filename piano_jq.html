@@ -1,0 +1,201 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+    <script src="js/jquery-3.1.1.js"></script>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+        }
+
+        #piano {
+            display: inline-block;
+            border: 1px solid black;
+            height: 300px;
+            width: 100%;
+        }
+
+        .white {
+            display: inline-block;
+            border: 1px solid black;
+            width: 50px;
+            height: 200px;
+        }
+
+        .white:hover {
+            background: #d2d9db;
+        }
+
+        .white:active, .whiteactive {
+            border: 5px solid #333333;
+            width: 42px;
+            height: 190px;
+        }
+
+        .black {
+            position: relative;
+            display: inline-block;
+            border: 1px solid black;
+            width: 30px;
+            height: 100px;
+            background: black;
+            left: -15px;
+            top: -100px;
+        }
+
+        .black:hover {
+            background: #3d4143;
+        }
+
+        .black:active, .blackactive {
+            border: 3px solid #c4c7c2;
+            width: 26px;
+            height: 96px;
+            /*top: -101px;*/
+        }
+
+        .black_container {
+            display: inline-block;
+            width: 0;
+        }
+
+        .test {
+            background: black;
+        }
+    </style>
+</head>
+<body>
+<audio id="au0"></audio>
+<audio id="au1"></audio>
+<audio id="au2"></audio>
+<audio id="au3"></audio>
+<audio id="au4"></audio>
+<audio id="au5"></audio>
+<audio id="au6"></audio>
+<audio id="au7"></audio>
+<audio id="au8"></audio>
+<audio id="au9"></audio>
+<div id="piano">
+
+</div>
+</body>
+<script>
+    var piano = $("#piano");
+    var cont = piano.text();
+    cont += "<div style='height: 99px'></div>";
+    for (var i = 1; i <= 88; i++) {
+        if ((i + 9) % 12 === 1 || (i + 9) % 12 === 3 || (i + 9) % 12 === 5 || (i + 9) % 12 === 6 || (i + 9) % 12 === 8 || (i + 9) % 12 === 10 || (i + 9) % 12 === 0)
+            cont += "<div onclick='key_play(" + i + ")' id='key" + i + "' class='white'></div>";
+        else
+            cont += "<div class='black_container'><div onclick='key_play(" + i + ")' id='key" + i + "' class='black'></div></div>";
+    }
+    piano.html(cont);
+    var use_id = 0;
+
+    function key_play(a) {
+        var use_name = "au" + use_id.toString();
+        document.getElementById(use_name).src = "wav/" + a + ".mp3";
+        document.getElementById(use_name).autoplay = 'autoplay';
+        document.getElementById(use_name).load();
+        use_id++;
+        if (use_id >= 10)
+            use_id = 0;
+        var div_name = "#key" + a.toString();
+        if ((a + 9) % 12 === 1 || (a + 9) % 12 === 3 || (a + 9) % 12 === 5 || (a + 9) % 12 === 6 || (a + 9) % 12 === 8 || (a + 9) % 12 === 10 || (a + 9) % 12 === 0) {
+
+            $(div_name).addClass('whiteactive');
+            setTimeout(function () {
+                $(div_name).removeClass('whiteactive');
+            }, 100);
+        }
+        else {
+            $(div_name).addClass('blackactive');
+            setTimeout(function () {
+                $(div_name).removeClass('blackactive');
+            }, 1000);
+        }
+
+    }
+
+    var note = new Array();
+
+    var timeline = 0;
+
+    {
+        for (var i = 0; i < 480; i++) {
+            note[i] = new Array();
+        }
+        add_note(0,6,2);
+        add_note(3,6,7);
+        add_note(9,6,9);
+        add_note(12,6,9);
+        add_note(17,6,11);
+        add_note(20,6,11);
+        add_note(26,6,11);
+        add_note(29,6,11);
+        add_note(35,6,11);
+
+        add_note(43,6,11);
+        add_note(52,6,9);
+        add_note(55,6,9);
+        add_note(60,6,9);
+        add_note(63,6,9);
+        add_note(69,6,9);
+
+        add_note(77,6,9);
+        add_note(86,6,7);
+        add_note(89,6,7);
+        add_note(94,6,7);
+        add_note(98,6,7);
+        add_note(103,6,7);
+
+        add_note(111,6,7);
+        add_note(120,6,2);
+        add_note(123,6,2);
+        add_note(129,6,2);
+
+        add_note(137,6,2);
+        add_note(140,6,7);
+        add_note(145,6,9);
+        add_note(149,6,9);
+        add_note(154,6,11);
+        add_note(157,6,11);
+        add_note(163,6,11);
+        add_note(166,6,11);
+        add_note(171,6,11);
+        add_note(180,7,2);
+        add_note(188,6,11);
+        add_note(191,6,11);
+        add_note(197,6,11);
+        add_note(200,6,11);
+        add_note(205,6,11);
+        add_note(208,6,9);
+        add_note(214,6,7);
+        add_note(217,6,9);
+        add_note(225,6,11);
+        add_note(230,6,11);
+    }
+
+    function add_note(time,a,b) {
+        if(a===1)
+        note[time][note[time].length]=b;
+        else
+            note[time][note[time].length]=3+(a-2)*12+b;
+    }
+
+    var timer = setInterval(function () {
+
+        for (var i = 0; i < note[timeline].length; i++) {
+            key_play(note[timeline][i]);
+        }
+        timeline++;
+        if (timeline >= 480)
+            clearInterval(timer);
+    }, 56);
+</script>
+</html>

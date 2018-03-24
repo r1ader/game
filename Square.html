@@ -1,0 +1,569 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <!--    <script src="js/Rcanvas/Rcanvas.js"></script>-->
+    <title>Document</title>
+    <style>
+        #main {
+            border: 1px solid black;
+            width: 800px;
+            height: 600px;
+        }
+
+        .dir {
+            height: 50px;
+            width: 50px;
+            font-size: 50px;
+            /*background-color: aqua;*/
+            /*color: hotpink;*/
+
+        }
+    </style>
+</head>
+<body>
+<div>
+    <!--<div id="w" class="dir" style="margin-left: 55px">w</div>-->
+    <!--<div id="a" class="dir" style="display: inline-block">a</div>-->
+    <!--<div id="s" class="dir" style="display: inline-block">s</div>-->
+    <!--<div id="d" class="dir" style="display: inline-block">d</div>-->
+    <!--<div id="f" class="dir" style="display: inline-block">F</div>-->
+    <!--<div id="left" class="dir" style="display: inline-block;">L</div>-->
+    <!--<div id="test" class="dir" style="display: inline-block;"></div>-->
+</div>
+<p> 用 尖角戳对应方块，戳中不同颜色的方块后，尖角损坏，戳中白色方块尖角恢复或其会自动恢复</p>
+<canvas id="main" width="1200" height="900"></canvas>
+<!--<embed height="100" width="100" src="wav/123.wav"/>-->
+<audio id="po1" src="wav/po1.wav"></audio>
+<audio id="po2" src="wav/po2.wav"></audio>
+<audio id="po3" src="wav/po3.wav"></audio>
+<audio id="white" src="wav/white.wav"></audio>
+<audio id="back" src="wav/back.wav"></audio>
+</body>
+
+<script>
+    // document.getElementById("mp4_src").src="wav/123.wav";
+
+    var test = document.getElementById('test');
+    var c = document.getElementById('main');
+    var ctx = c.getContext('2d');
+    ctx.fillStyle = 'black';
+    ctx.fillRect(0, 0, 1200, 900);
+    var timeline = 0;
+    var passx = 0;
+    var passy = 0;
+    var mousex = 0;
+    var mousey = 0;
+    var keyw = 0;   //是否按下W建
+    var keya = 0;
+    var keys = 0;
+    var keyd = 0;
+    var keyf = 0;
+    var key_space = 0;
+    var pause = 0;
+    var mouse_left = 0; //是否按下鼠标左键
+
+    var score = 0;
+    var level;
+    var blood = 100;
+
+    var colors = ['aqua', 'yellow', 'hotpink', 'white'];
+
+    var squas = new Array();
+    var squas_num = 0;
+
+    var wave = new Array();
+    var speed = new Array();
+    var t_speed = new Array();
+    var eternal_num = 0;
+
+    var me = new Stick(mousex, mousey, 0);
+
+    function touch(x) {
+        if (speed[x] === 0 && wave[x] === 450)
+            speed[x] = 20;
+    }
+
+    var wave_move = function () {
+        for (var i = 1; i <= 1000; i++) {
+            if (t_speed[i] === 0)
+                t_speed[i] = speed[i] + (wave[i] - 450) / -10;
+            // t_speed[i] *= 0.9;
+            if (speed[i] >= 0.1) {
+                if (speed[i - 1] === 0 && wave[i - 1] === 450) {
+                    t_speed[i - 1] += speed[i] * 0.9;
+                }
+                if (speed[i + 1] === 0 && wave[i + 1] === 450) {
+                    t_speed[i + 1] += speed[i] * 0.9;
+                }
+            }
+        }
+        for (var i = 1; i <= 1000; i++) {
+            speed[i] = t_speed[i] * 0.9;
+            t_speed[i] = 0;
+            wave[i] += speed[i];
+            if (Math.abs(speed[i]) < 0.01 && Math.abs(wave[i] - 450) < 0.01) {
+                speed[i] = 0;
+                wave[i] = 450;
+            }
+        }
+    };
+
+    function random_color() {
+        return colors[Math.round(Math.random() * 4)];
+    }
+
+    function Tip(x, y, l) {
+        this.x = x;
+        this.y = y;
+        this.length = l;
+    }
+
+    function Stick(x, y, dirs) {
+        this.pos_x = x;
+        this.pos_y = y;
+        this.pos_dir = dirs;
+        this.tips = new Array();
+        for (var i = 0; i < 3; i++)
+            this.tips[i] = new Tip(0, 0, 50);
+        this.update = function () {
+            this.pos_x = mousex;
+            this.pos_y = mousey;
+            this.pos_dir += 0.01;
+            if (this.pos_dir >= Math.PI * 2) this.pos_dir -= Math.PI * 2;
+            for (var i = 0; i < 3; i++) {
+                this.tips[i].x = this.pos_x + this.tips[i].length * Math.cos(this.pos_dir + Math.PI * 2 / 3 * i);
+                this.tips[i].y = this.pos_y + this.tips[i].length * Math.sin(this.pos_dir + Math.PI * 2 / 3 * i);
+                if (this.tips[i].length < 50)
+                    this.tips[i].length += 0.1;
+            }
+
+        }
+    }
+
+    function Square(x, y, len, dir, dir_sp, col, speedx, speedy, stat) {
+        this.pos_x = x;
+        this.pos_y = y;
+        this.length = len;
+        this.final_length = len;
+        this.pos_dir = dir;
+        this.pos_dir_speed = dir_sp || 0;
+        this.speed_x = speedx || 0;
+        this.speed_y = speedy || 0;
+        this.speed_dir = 0;
+        this.color = col || 'white';
+        this.timeline = 40;
+        this.state = stat || 2;
+        this.update = function () {
+            if (this.state === 0) return 0;
+            else if (this.state === 3 && this.pos_y < 900 - score * 4) {
+                this.speed_y += 0.98;
+            }
+            else if (this.state === 2) {
+                if (this.timeline > 10) {
+                    var dx = 40 - this.timeline;
+                    this.length = dx * dx / 30 / 20 * this.final_length;
+                    this.timeline--;
+                }
+                else if (this.timeline > 0) {
+                    var dx = 40 - this.timeline;
+                    this.length = (60 - dx) / 20 * this.final_length;
+                    this.timeline--;
+                }
+            }
+            else if (this.state === 1) {
+                if (this.timeline >= 0) {
+                    this.length = this.timeline / 5;
+                    this.timeline -= 1;
+                    if (this.pos_y < 450)
+                        this.speed_y += 0.3;
+                }
+                else {
+                    this.state = 0;
+                }
+            }
+            if (this.timeline === 0) {
+                this.speed_y += 0.98;
+                if (this.pos_y > 450) {
+                    this.speed_y -= 0.5 + this.speed_y / 5;
+                }
+            }
+            this.pos_x += this.speed_x;
+            if (this.pos_y < 450 && this.pos_y + this.speed_y >= 450) {
+                touch(this.pos_x);
+            }
+            this.pos_y += this.speed_y;
+            this.pos_dir += this.pos_dir_speed;
+            if (this.pos_dir < 0) this.pos_dir += Math.PI / 2;
+            if (this.pos_dir >= Math.PI / 2) this.pos_dir -= Math.PI / 2;
+            var height = this.length / Math.sqrt(2) * Math.sin(this.pos_dir - Math.PI * 3 / 4) * -1;
+
+            if (this.state === 3) {
+                if (this.pos_y > 850 - score * 4) {
+                    this.speed_y = 0;
+                }
+            }
+            if (this.state === 2) {
+                if (this.pos_y >= 960 - height) {
+                    this.state = 0;
+                    blood--;
+                }
+                for (var i = 0; i < 3; i++) {
+                    if (me.tips[i].length >= 50 && Math.abs(this.pos_x - me.tips[i].x) <= 30 && Math.abs(this.pos_y - me.tips[i].y) <= 30) {
+                        score++;
+                        if (this.color === 'white' || this.color === colors[i]) {
+                            if (this.color !== 'white') {
+                                var music = 'po' + (i + 1).toString();
+                                music_play(music);
+                            }
+                            else
+                                music_play('white');
+
+                            for (var i = 0; i < 20; i++)
+                                add_squa(this.pos_x, this.pos_y, 10, 0, Math.random() * 0.06 - 0.03, this.color, Math.random() * 10 - 5, Math.random() * 10 - 5, 1);
+                            this.state = 0;
+                            add_eternal(Math.random() * 60 + 1020, 0, 40, Math.random() * 3.14, 0, this.color, 0, 0, 3);
+                            if (this.pos_y < 450) {
+                                score += 4;
+                                setTimeout(function () {
+                                    add_eternal(Math.random() * 60 + 1020, 0, 40, Math.random() * 3.14, 0, random_color(), 0, 0, 3)
+                                }, 200);
+                                setTimeout(function () {
+                                    add_eternal(Math.random() * 60 + 1020, 0, 40, Math.random() * 3.14, 0, random_color(), 0, 0, 3)
+                                }, 400);
+                                setTimeout(function () {
+                                    add_eternal(Math.random() * 60 + 1020, 0, 40, Math.random() * 3.14, 0, random_color(), 0, 0, 3)
+                                }, 600);
+                                setTimeout(function () {
+                                    add_eternal(Math.random() * 60 + 1020, 0, 40, Math.random() * 3.14, 0, random_color(), 0, 0, 3)
+                                }, 800);
+                            }
+
+                        }
+                        else
+                            me.tips[i].length = 0;
+                        if (this.color === 'white') {
+                            for (var j = 0; j < 3; j++) {
+                                if(me.tips[j].length!==50)
+                                    music_play('back');
+                                me.tips[j].length = 50;
+                            }
+                        }
+
+                    }
+                }
+            }
+            else {
+                if (this.pos_y >= 1000 - height) {
+                    this.state--;
+                }
+            }
+        };
+
+    }
+
+    var init = function () {
+        for (var i = 1; i <= 1000; i++) {
+            wave[i] = 450;
+            speed[i] = 0;
+            t_speed[i] = 0;
+        }
+    };
+
+    var gui = function () {
+        test.innerText = score;
+        if (keya)
+            document.getElementById('a').style.backgroundColor = 'green';
+        else
+            document.getElementById('a').style.backgroundColor = 'white';
+        if (keyw)
+            document.getElementById('w').style.backgroundColor = 'green';
+        else
+            document.getElementById('w').style.backgroundColor = 'white';
+        if (keys)
+            document.getElementById('s').style.backgroundColor = 'green';
+        else
+            document.getElementById('s').style.backgroundColor = 'white';
+        if (keyd)
+            document.getElementById('d').style.backgroundColor = 'green';
+        else
+            document.getElementById('d').style.backgroundColor = 'white';
+        if (mouse_left)
+            document.getElementById('left').style.backgroundColor = 'green';
+        else
+            document.getElementById('left').style.backgroundColor = 'white';
+        if (keyf)
+            document.getElementById('f').style.backgroundColor = 'green';
+        else
+            document.getElementById('f').style.backgroundColor = 'white';
+
+    };
+
+    var time_flash = function () {
+        timeline++;
+        if (timeline > 0) {
+        }
+        // test.innerText = timeline;
+    };
+
+    function add_squa(a, b, c, d, f, g, h, i, j) {
+        squas[squas_num % 1000] = new Square(a, b, c, d, f, g, h, i, j);
+        return (squas_num++) % 1000;
+    }
+
+    function add_eternal(a, b, c, d, f, g, h, i, j) {
+        squas[1000 + eternal_num] = new Square(a, b, c, d, f, g, h, i, j);
+        eternal_num++;
+        return 1000 + eternal_num - 1;
+    }
+
+    var creat_square = function () {
+        level = 0.023 + score / 2500;
+        var rd = Math.random();
+        if (rd < level)
+            add_squa(Math.round(rd * 800 / level + 100), 100, 40, 0, Math.random() * 0.06 - 0.03, random_color());
+        // mouse_left = 0;
+    };
+
+    var square_draw = function (sq) {
+        var d = sq.pos_dir - Math.PI / 4;
+        var x = sq.pos_x + sq.length * Math.cos(d) / Math.sqrt(2);
+        var y = sq.pos_y + sq.length * Math.sin(d) / Math.sqrt(2);
+        // console.log("d="+d);
+        // console.log(x+" "+y);
+        ctx.beginPath();
+        ctx.moveTo(x, y);
+        for (var i = 0; i < 4; i++) {
+            d += Math.PI / 2;
+            x = sq.pos_x + sq.length * Math.cos(d) / Math.sqrt(2);
+            y = sq.pos_y + sq.length * Math.sin(d) / Math.sqrt(2);
+            ctx.lineTo(x, y);
+            // console.log(x+" "+y);
+        }
+        ctx.lineWidth = 2;
+        ctx.strokeStyle = sq.color;
+        ctx.fillStyle = sq.color;
+        ctx.stroke();
+        // ctx.fill();
+    };
+
+    var stick_draw = function (st) {
+        var x = st.pos_x;
+        var y = st.pos_y;
+        for (var i = 0; i < 3; i++) {
+            ctx.beginPath();
+            ctx.moveTo(x, y);
+            var td = st.pos_dir - Math.PI / 3 + Math.PI * 2 / 3 * i;
+            var tx = x + 10 * Math.cos(td);
+            var ty = y + 10 * Math.sin(td);
+            ctx.lineTo(tx, ty);
+            td += Math.PI / 3;
+            if (me.tips[i].length < 2) {
+                tx = x + (50 - me.tips[i].length * 25) * Math.cos(td);
+                ty = y + (50 - me.tips[i].length * 25) * Math.sin(td);
+            }
+            else {
+                tx = x + me.tips[i].length * Math.cos(td);
+                ty = y + me.tips[i].length * Math.sin(td);
+            }
+            ctx.lineTo(tx, ty);
+            td += Math.PI / 3;
+            tx = x + 10 * Math.cos(td);
+            ty = y + 10 * Math.sin(td);
+            ctx.lineTo(tx, ty);
+            ctx.closePath();
+            ctx.lineWidth = 2;
+            ctx.strokeStyle = colors[i];
+            ctx.stroke();
+            if (me.tips[i].length < 50) {
+                ctx.strokeStyle = 'rgba(0,0,0,0.7)';
+                ctx.stroke();
+            }
+        }
+
+    };
+
+    var ui_draw = function () {
+        ctx.beginPath();
+        ctx.moveTo(1000, 0);
+        ctx.lineTo(1000, 900);
+        ctx.moveTo(1100, 0);
+        ctx.lineTo(1100, 900);
+        ctx.closePath();
+        ctx.strokeStyle = 'white';
+        ctx.stroke();
+        ctx.fillStyle = 'hotpink';
+        ctx.fillRect(1102, 900 - blood * 9, 100, blood * 9);
+        ctx.fillStyle = 'white';
+        ctx.font = "30px Verdana";
+        ctx.fillText(score, 1020, 30);
+        ctx.fillText(blood, 1120, 30);
+
+    };
+
+    var draw = function () {
+
+        ctx.fillStyle = 'rgba(0,0,0,0.3)';
+        ctx.fillRect(0, 0, 1200, 450);
+        ctx.fillStyle = 'rgba(0,0,0,1)';
+        ctx.fillRect(0, 450, 1200, 500);
+
+        //square
+        for (var i = squas_num - 1000 > 0 ? squas_num - 1000 : 0; i < squas_num; i++) {
+            if (squas[i % 1000].state !== 0)
+                square_draw(squas[i % 1000]);
+        }
+        for (var i = 1000; i < 1000 + eternal_num; i++) {
+            square_draw(squas[i]);
+        }
+        //wave
+        for (var i = 1; i <= 1000; i++) {
+            ctx.fillStyle = 'white';
+            ctx.fillRect(i, wave[i], 1, 2);
+        }
+        //stick
+        stick_draw(me);
+
+        ui_draw();
+    };
+
+    var update = function () {
+        for (var i = squas_num - 1000 > 0 ? squas_num - 1000 : 0; i < squas_num; i++) {
+            squas[i % 1000].update();
+        }
+        for (var i = 1000; i < 1000 + eternal_num; i++) {
+            squas[i].update();
+        }
+
+        me.update();
+    };
+
+    var pr = function () {
+        if (blood <= 0) pause = 1;
+        creat_square();
+        update();
+        wave_move();
+        draw();
+        var dl = 0;
+        if (key_space === 1)
+            dl = 40;
+        setTimeout(function () {
+            if (pause === 0)
+                window.requestAnimationFrame(pr);
+            else {
+                lose();
+            }
+        }, dl);
+    };
+
+    var lose = function () {
+        window.requestAnimationFrame(lose);
+        time_flash();
+        ctx.fillStyle = 'rgba(0,0,0,0.01)';
+        ctx.fillRect(0, 0, 1200, 900);
+        if (mousex < 690 && mousex > 480 && mousey > 360 && mousey < 410) {
+            ctx.strokeStyle = 'rgba(255,255,255,0.2)';
+            if (mouse_left) {
+                location.reload();
+            }
+        }
+        else
+            ctx.strokeStyle = 'rgba(0,0,0,0.1)';
+        ctx.beginPath();
+        ctx.moveTo(480, 360);
+        ctx.lineTo(690, 360);
+        ctx.lineTo(690, 410);
+        ctx.lineTo(480, 410);
+        ctx.lineTo(480, 360);
+        ctx.closePath();
+        ctx.stroke();
+        ctx.font = "50px Verdana";
+        ctx.fillStyle = 'rgba(255,255,255,0.01)';
+        ctx.fillText("restart", 500, 400);
+
+    };
+
+    function music_play(id) {
+        document.getElementById(id).autoplay = 'autoplay';
+        document.getElementById(id).load();
+    }
+
+    c.onmouseover = function (ev) {
+        // this.style.cursor = 'pointer';
+        // this.style.cursor = 'url(img/point.ico),auto';
+    };
+
+    document.onkeydown = function (event) {
+        var e = e || event;
+//        console.log(e.keyCode);
+        var speed = 10;
+        if (e && e.keyCode == 87) { // 按 w
+            keyw = 1;
+        }
+        if (e && e.keyCode == 83) { // 按 s
+            keys = 1;
+        }
+        if (e && e.keyCode == 68) { // 按 d
+            keyd = 1;
+        }
+        if (e && e.keyCode == 65) { // 按 a
+            keya = 1;
+        }
+        if (e && e.keyCode == 70) { // 按 f
+            keyf = 1;
+        }
+        if (e && e.keyCode == 32) { // 按 f
+            key_space = 1;
+        }
+    };
+
+    document.onkeyup = function (event) {
+        var e = e || event;
+        if (e && e.keyCode == 87) { // 松开 w
+            keyw = 0;
+        }
+        if (e && e.keyCode == 83) { // 松开 s
+            keys = 0;
+        }
+        if (e && e.keyCode == 68) { // 松开 d
+            keyd = 0;
+        }
+        if (e && e.keyCode == 65) { // 松开 a
+            keya = 0;
+        }
+        if (e && e.keyCode == 70) { // 按 f
+            keyf = 0;
+        }
+        if (e && e.keyCode == 32) { // 按 f
+            key_space = 0;
+            // pr();
+        }
+    };
+
+    document.onmousemove = function (e) {
+        e = e || window.event;
+        var rc = c.getBoundingClientRect();
+        mousex = Math.floor((e.clientX - rc.left) / 2 * 3);//获取鼠标在canvsa中的坐标
+        mousey = Math.floor((e.clientY - rc.top) / 2 * 3);
+//        console.log(me.dir);
+    };
+
+    document.onmousedown = function (e) {
+
+        mouse_left = 1;
+        passx = mousex;
+        passy = mousey;
+    };
+
+    document.onmouseup = function (e) {
+        mouse_left = 0;
+    };
+
+    init();
+
+    pr();
+</script>
+</html>
