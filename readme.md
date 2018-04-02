@@ -10,3 +10,5 @@
 * [自制小游戏](https://r1ader.github.io/game/Square.html)
 
 <a href="https://r1ader.github.io/game/Square.html"><img src="https://github.com/r1ader/game/raw/gh-pages/img/square.png" width = "300" height = "250" alt="图片名称" align=center /></a>
+
+* [3d黑白棋](https://r1ader.github.io/game/3dchess.html)
