@@ -1,0 +1,266 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <!--    <script src="js/Rcanvas/Rcanvas.js"></script>-->
+    <title>Document</title>
+    <style>
+        #main {
+            border: 1px solid black;
+        }
+
+        .dir {
+            height: 50px;
+            width: 50px;
+            font-size: 50px;
+            /*background-color: aqua;*/
+
+        }
+    </style>
+</head>
+<body>
+<div hidden>
+    <div id="w" class="dir" style="margin-left: 55px">w</div>
+    <div id="a" class="dir" style="display: inline-block">a</div>
+    <div id="s" class="dir" style="display: inline-block">s</div>
+    <div id="d" class="dir" style="display: inline-block">d</div>
+    <div id="f" class="dir" style="display: inline-block">F</div>
+    <div id="left" class="dir" style="display: inline-block;">L</div>
+</div>
+
+<h1>按 W 和 S 调整笔触大小，按 A 和 D 或直接点击选择颜色</h1>
+<canvas id="main" width="1200" height="900"></canvas>
+</body>
+<script>
+    var test = document.getElementById('test');
+    var c = document.getElementById('main');
+    var ctx = c.getContext('2d');
+    ctx.fillStyle = 'black';
+    ctx.fillRect(0, 0, 1200, 900);
+    var passx = 0;
+    var passy = 0;
+    var mousex = 0;
+    var mousey = 0;
+    var keyw = 0;   //是否按下W建
+    var keya = 0;
+    var keys = 0;
+    var keyd = 0;
+    var keyf = 0;
+    var mouse_left = 0; //是否按下鼠标左键
+    var linewid = 5;
+    var co_r=254;
+    var co_g=0;
+    var co_b=0;
+    var i;
+    var j;
+    var col = [];
+    var col_data=81;
+    var ischose = 0;
+    var init = function () {
+        for(i=0;i<6;i++)
+        {
+            for(j=0;j<=254;j+=2)
+            {
+                if(i==0)
+                    co_g=j;
+                if(i==1)
+                    co_r=254-j;
+                if(i==2)
+                    co_b=j;
+                if(i==3)
+                    co_g=254-j;
+                if(i==4)
+                    co_r=j;
+                if(i==5)
+                    co_b=254-j;
+                var mx = i*254+j;
+
+                col[mx/2+80] = 'rgba('+co_r+','+co_g+','+co_b+',1)';
+
+
+//                console.log(col);
+                ctx.fillStyle = col[mx/2+80];
+                ctx.fillRect(mx/2+80,0,1,30);
+            }
+        }
+        for(i=0;i<=255;i++)
+        {
+            col[842+255-i] = 'rgba('+i+','+i+','+i+',1)';
+            ctx.fillStyle = col[842+255-i];
+            ctx.fillRect(842+255-i,0,1,30);
+        }
+    };
+
+    var gui = function () {
+        if (keya)
+            document.getElementById('a').style.backgroundColor = 'green';
+        else
+            document.getElementById('a').style.backgroundColor = 'white';
+        if (keyw)
+            document.getElementById('w').style.backgroundColor = 'green';
+        else
+            document.getElementById('w').style.backgroundColor = 'white';
+        if (keys)
+            document.getElementById('s').style.backgroundColor = 'green';
+        else
+            document.getElementById('s').style.backgroundColor = 'white';
+        if (keyd)
+            document.getElementById('d').style.backgroundColor = 'green';
+        else
+            document.getElementById('d').style.backgroundColor = 'white';
+        if (mouse_left)
+            document.getElementById('left').style.backgroundColor = 'green';
+        else
+            document.getElementById('left').style.backgroundColor = 'white';
+        if (keyf)
+            document.getElementById('f').style.backgroundColor = 'green';
+        else
+            document.getElementById('f').style.backgroundColor = 'white';
+        ctx.fillStyle='black';
+        ctx.fillRect(0,0,60,60);
+        ctx.fillRect(60,30,1200,30);
+        ctx.beginPath();
+        ctx.arc(30,30,linewid>20?20:linewid,0,2*Math.PI,0);
+        ctx.fillStyle='white';
+        ctx.fill();
+        ctx.closePath();
+        ctx.fillStyle=col[col_data];
+        ctx.strokeStyle='white';
+        ctx.beginPath();
+        ctx.moveTo(col_data,30);
+        ctx.lineTo(col_data-20,60);
+        ctx.lineTo(col_data+20,60);
+        ctx.fill();
+//        ctx.stroke();
+        ctx.closePath();
+
+    };
+
+    var draw = function () {
+        if (mouse_left&&mousey>60) {
+            ctx.fillStyle = 'white';
+            ctx.strokeStyle = col[col_data];
+//            ctx.fillRect(mousex, mousey, 5, 5);
+            ctx.lineCap = 'round';
+            ctx.lineWidth = linewid;
+            ctx.beginPath();
+            ctx.moveTo(passx,passy);
+            ctx.lineTo(mousex,mousey);
+            ctx.stroke();
+            ctx.closePath();
+        }
+        passx=mousex;
+        passy=mousey;
+    };
+
+    var linewid_col_change = function () {
+        if(keyw&&linewid<=300)
+        {
+            linewid+=1;
+        }
+        if(keys&&linewid>=2)
+        {
+            linewid-=1;
+        }
+        if(ischose)
+        {
+            if(mousex<=1088&&mousex>=81)
+                col_data = mousex;
+        }
+        else
+        {
+            if(keya&&col_data>=81)
+            {
+                col_data-=2;
+                if(col_data<=81)
+                    col_data=1088;
+            }
+            if(keyd&&col_data<=1088)
+            {
+                col_data+=2;
+                if(col_data>=1088)
+                    col_data=81;
+            }
+        }
+
+
+    };
+    //主要循环函数，每帧运行一次
+    var pr = function () {
+        gui();      //显示此时操作
+        linewid_col_change();
+        if(!ischose)
+            draw();
+        window.requestAnimationFrame(pr);
+    };
+
+    document.onkeydown = function (event) {
+        var e = e || event;
+//        console.log(e.keyCode);
+        var speed = 10;
+        if (e && e.keyCode == 87) { // 按 w
+            keyw = 1;
+        }
+        if (e && e.keyCode == 83) { // 按 s
+            keys = 1;
+        }
+        if (e && e.keyCode == 68) { // 按 d
+            keyd = 1;
+        }
+        if (e && e.keyCode == 65) { // 按 a
+            keya = 1;
+        }
+        if (e && e.keyCode == 70) { // 按 f
+            keyf = 1;
+        }
+
+    };
+
+    document.onkeyup = function (event) {
+        var e = e || event;
+        if (e && e.keyCode == 87) { // 松开 w
+            keyw = 0;
+        }
+        if (e && e.keyCode == 83) { // 松开 s
+            keys = 0;
+        }
+        if (e && e.keyCode == 68) { // 松开 d
+            keyd = 0;
+        }
+        if (e && e.keyCode == 65) { // 松开 a
+            keya = 0;
+        }
+        if (e && e.keyCode == 70) { // 按 f
+            keyf = 0;
+        }
+    };
+
+    document.onmousemove = function (e) {
+        e = e || window.event;
+        var rc = c.getBoundingClientRect();
+        mousex = Math.floor(e.clientX - rc.left);//获取鼠标在canvsa中的坐标
+        mousey = Math.floor(e.clientY - rc.top);
+//        console.log(me.dir);
+    };
+
+    document.onmousedown = function (e) {
+        mouse_left = 1;
+        passx = mousex;
+        passy = mousey;
+        if(mousey<=60)
+            ischose=1;
+    };
+
+    document.onmouseup = function (e) {
+        mouse_left = 0;
+        ischose = 0;
+    };
+
+    init();
+
+    pr();
+</script>
+</html>
