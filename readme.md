@@ -12,3 +12,7 @@
 <a href="https://r1ader.github.io/game/Square.html"><img src="https://github.com/r1ader/game/raw/gh-pages/img/square.png" width = "300" height = "250" alt="Í¼Æ¬Ãû³Æ" align=center /></a>
 
 * [3dºÚ°×Æå](https://r1ader.github.io/game/3dchess.html)
+
+* [»­°å](https://r1ader.github.io/game/board.html)
+
+<a href="https://r1ader.github.io/game/board.html"><img src="https://github.com/r1ader/game/raw/gh-pages/img/board.gif" width = "300" height = "250" alt="Í¼Æ¬Ãû³Æ" align=center /></a>
